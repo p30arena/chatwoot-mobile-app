@@ -12,12 +12,15 @@ import { useAppSelector, useAppDispatch } from '@/hooks';
 import { selectBaseUrl } from '@/store/settings/settingsSelectors';
 import { resetSettings } from '@/store/settings/settingsSlice';
 import { settingsActions } from '@/store/settings/settingsActions';
+import { extractDomain } from '@/store/settings/settingsUtils';
 
 type FormData = {
   url: string;
 };
 
 const appName = Application.applicationName;
+const lockedBaseUrl = process.env.EXPO_PUBLIC_LOCK_BASE_URL === 'true';
+const envBaseUrl = process.env.EXPO_PUBLIC_CHATWOOT_BASE_URL || '';
 
 const ConfigURLScreen = () => {
   const baseUrl = useAppSelector(selectBaseUrl);
@@ -35,6 +38,10 @@ const ConfigURLScreen = () => {
   });
 
   useEffect(() => {
+    if (lockedBaseUrl && envBaseUrl) {
+      dispatch(settingsActions.setInstallationUrl(envBaseUrl));
+      return;
+    }
     dispatch(resetSettings());
   }, [dispatch]);
 
@@ -44,6 +51,36 @@ const ConfigURLScreen = () => {
       dispatch(settingsActions.setInstallationUrl(url));
     }
   };
+
+  if (lockedBaseUrl && envBaseUrl) {
+    return (
+      <SafeAreaView style={tailwind.style('flex-1 bg-white')}>
+        <StatusBar
+          translucent
+          backgroundColor={tailwind.color('bg-white')}
+          barStyle={'dark-content'}
+        />
+        <View style={tailwind.style('flex-1 bg-white')}>
+          <Animated.View style={tailwind.style('px-6 pt-16')}>
+            <Icon icon={<LinkIcon />} size={40} />
+            <View style={tailwind.style('pt-6 gap-4')}>
+              <Animated.Text style={tailwind.style('text-2xl text-gray-950 font-inter-semibold-20')}>
+                {i18n.t('CONFIGURE_URL.ENTER_URL')}
+              </Animated.Text>
+              <Animated.Text
+                style={tailwind.style(
+                  'font-inter-normal-20 leading-[18px] tracking-[0.32px] text-gray-900',
+                )}>
+                {i18n.t('LOGIN.DESCRIPTION', {
+                  baseUrl: extractDomain({ url: envBaseUrl }),
+                })}
+              </Animated.Text>
+            </View>
+          </Animated.View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={tailwind.style('flex-1 bg-white')}>

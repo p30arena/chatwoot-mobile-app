@@ -3,6 +3,8 @@ import { settingsActions } from './settingsActions';
 import * as RootNavigation from '@/utils/navigationUtils';
 import { NotificationSettings } from './settingsTypes';
 import { Theme } from '@/types/common/Theme';
+import { URL_TYPE } from '@/constants/url';
+import { extractDomain } from './settingsUtils';
 
 interface SettingsState {
   baseUrl: string;
@@ -20,8 +22,12 @@ interface SettingsState {
   pushToken: string;
 }
 const initialState: SettingsState = {
-  baseUrl: 'app.chatwoot.com',
-  installationUrl: 'https://app.chatwoot.com/',
+  baseUrl: process.env.EXPO_PUBLIC_CHATWOOT_BASE_URL
+    ? extractDomain({ url: process.env.EXPO_PUBLIC_CHATWOOT_BASE_URL })
+    : 'app.chatwoot.com',
+  installationUrl: process.env.EXPO_PUBLIC_CHATWOOT_BASE_URL
+    ? `${URL_TYPE}${extractDomain({ url: process.env.EXPO_PUBLIC_CHATWOOT_BASE_URL })}/`
+    : 'https://app.chatwoot.com/',
   uiFlags: {
     isSettingUrl: false,
     isUpdating: false,
@@ -37,7 +43,9 @@ const initialState: SettingsState = {
     selected_push_flags: [],
     user_id: 0,
   },
-  webSocketUrl: 'wss://app.chatwoot.com/cable',
+  webSocketUrl: process.env.EXPO_PUBLIC_CHATWOOT_BASE_URL
+    ? `wss://${extractDomain({ url: process.env.EXPO_PUBLIC_CHATWOOT_BASE_URL })}/cable`
+    : 'wss://app.chatwoot.com/cable',
   theme: 'system',
   version: '',
   pushToken: '',
